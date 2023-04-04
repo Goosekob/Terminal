@@ -6,71 +6,80 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#define MAX_ARGS 10  // максимальное количество аргументов
+#define MAX 10  
 
 void onCtrlC(int sig) 
 {
     printf("Список запущенных процессов:\n");
     system("ps -e");
-    // запрашиваем у пользователя идентификатор процесса
     printf("Выберите PID процесса, который хотите остановить: ");
     pid_t pid;
     scanf("%d", &pid);
-    // останавливаем процесс с помощью команды kill
     kill(pid, SIGTERM);
-    // завершаем работу программы
-    exit(0);
+    exit(1);
 }
 
 int main() 
 {
-    char input[100];           // буфер для ввода команды
-    char *args[MAX_ARGS + 2];  // массив аргументов команды
+    char input[100];
+    char *arguments[MAX + 2];
     int status, count;
     pid_t pid;
 
-    signal(SIGINT, onCtrlC);  // обработка сигнала SIGINT
+    signal(SIGINT, onCtrlC);
 
     while (1) 
     {
-        printf("\n> ");                      // приглашение командной строки
-        fgets(input, sizeof(input), stdin);  // получаем ввод пользователя
+        printf("\nТерминальчик > ");
+        fgets(input, sizeof(input), stdin);
         count = 0;
-        args[count++] = strtok(input, " \n");  // первый аргумент - имя команды
-        while ((args[count++] = strtok(NULL, " \n")) != NULL) 
+        arguments[count++] = strtok(input, " \n");
+        while ((arguments[count++] = strtok(NULL, " \n")) != NULL) 
         {
-            if (count > MAX_ARGS + 1) 
+            if (count > MAX + 1) 
             {
                 printf("Слишком много аргументов.\n");
                 count = 0;
                 break;
             }
         }
+        
         if (count == 1) 
-        {  // отсутствие аргументов
+        {
             continue;
         }
-        args[count] = NULL;  // последний аргумент - NULL
+        arguments[count] = NULL;
 
-        if (strcmp(args[0], "ls") == 0) 
-        {  // команда "ls"
+        if (strcmp(arguments[0], "ls") == 0) 
+        {
             if ((pid = fork()) == 0) 
             {
-                execvp(args[0], args);
+                execvp(arguments[0], arguments);
                 exit(1);
             }
             wait(&status);
-        } else if (strcmp(args[0], "cat") == 0) 
-        {  // команда "cat"
+        } else if (strcmp(arguments[0], "cat") == 0) 
+        {
+            if (arguments[1] == NULL)
+            {
+                printf("Не указан файл.\n");
+                exit(1);
+            }
+
             if ((pid = fork()) == 0) 
             {
-                execvp(args[0], args);
+                execvp(arguments[0], arguments);
                 exit(1);
             }
             wait(&status);
         } else 
-        {  // неизвестная команда
-            printf("Неизвестная команда:");
+
+        if (strcmp(arguments[0], "exit") == 0)
+        {
+            return 0;
+        } else
+        {
+            printf("Неизвестная команда");
         }
     }
     return 0;
