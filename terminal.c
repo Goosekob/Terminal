@@ -30,7 +30,7 @@ int main()
 
     while (1) 
     {
-        printf("\nТерминальчик > ");
+        printf("\n%s > ", getlogin());
         fgets(input, sizeof(input), stdin);
         count = 0;
         arguments[count++] = strtok(input, " \n");
@@ -58,7 +58,8 @@ int main()
                 exit(1);
             }
             wait(&status);
-        } else if (strcmp(arguments[0], "cat") == 0) 
+        } else 
+        if (strcmp(arguments[0], "cat") == 0) 
         {
             if (arguments[1] == NULL)
             {
